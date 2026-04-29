@@ -87,7 +87,6 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 24px;
-  scroll-snap-type: y proximity;
 }
 
 body {
@@ -314,8 +313,6 @@ button:disabled {
   padding-top: 96px;
   padding-bottom: 180px;
   scroll-margin-top: 32px;
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
 }
 
 [data-question-stage] .question-panel {
@@ -426,8 +423,6 @@ button:disabled {
 
 .question-panel h1.inline-prompt--positioning {
   max-width: 720px;
-  font-size: 32px;
-  line-height: 1.28;
 }
 
 .inline-prompt span {
@@ -1082,11 +1077,6 @@ button:disabled {
   .question-panel h1 {
     font-size: 34px;
     line-height: 1.07;
-  }
-
-  .question-panel h1.inline-prompt--positioning {
-    font-size: 29px;
-    line-height: 1.18;
   }
 
   .question-helper {

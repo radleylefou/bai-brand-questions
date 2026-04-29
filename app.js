@@ -1888,6 +1888,8 @@ function fieldMetaLabel(field) {
 function renderScrollableQuestion(field, index, total) {
   const answered = hasAnswer(field);
   const isInlinePrompt = isInlinePromptField(field);
+  const isLast = index === total - 1;
+  const buttonLabel = isLast ? "Review" : answered ? "Next" : "Skip";
 
   return `
     <section class="question-stage question-stage--scroll" id="${field.id}" data-question-stage data-section-id="${escapeHtml(field.sectionId)}">
@@ -1901,6 +1903,11 @@ function renderScrollableQuestion(field, index, total) {
         <div class="answer-area ${isInlinePrompt ? "answer-area--inline" : ""} ${errors[field.id] ? "has-error" : ""}" data-field-shell="${field.id}">
           ${isInlinePrompt ? "" : renderTypeformControl(field)}
           <p class="error-text" data-error="${field.id}">${errors[field.id] ? escapeHtml(errors[field.id]) : ""}</p>
+        </div>
+        <div class="question-actions">
+          <button class="primary-action" type="button" data-scroll-next="${field.id}" data-next-button="${field.id}">
+            ${buttonLabel}
+          </button>
         </div>
       </article>
     </section>
@@ -2183,6 +2190,16 @@ function refreshTypeformLiveUi(id) {
   document.querySelectorAll(".question-stage--closing .question-label-row span:last-child").forEach((item) => {
     item.textContent = `${completedCount()}/${allFields().length}`;
   });
+
+  const fields = allFields();
+  const fieldIndex = fields.findIndex((item) => item.id === id);
+  if (fieldIndex >= 0) {
+    const isLast = fieldIndex === fields.length - 1;
+    const updatedField = fields[fieldIndex];
+    document.querySelectorAll(`[data-next-button="${CSS.escape(id)}"]`).forEach((btn) => {
+      btn.textContent = isLast ? "Review" : hasAnswer(updatedField) ? "Next" : "Skip";
+    });
+  }
 }
 
 function updateFixedContext(fieldId) {
@@ -2268,6 +2285,71 @@ function initQuestionAnimations() {
       observer.observe(el);
     }
   });
+}
+
+let isSnapInProgress = false;
+let snapResetTimer;
+
+function snapToStage(stage, options = {}) {
+  if (!stage) return;
+  isSnapInProgress = true;
+  stage.scrollIntoView({ behavior: "smooth", block: "start" });
+  window.clearTimeout(snapResetTimer);
+  snapResetTimer = window.setTimeout(() => {
+    isSnapInProgress = false;
+    if (options.focus) {
+      const input = stage.querySelector(
+        "textarea, input[type='text'], [data-inline-field], [data-chip-field], [data-scale-field], [data-typeform-rank]",
+      );
+      if (input && typeof input.focus === "function") input.focus();
+    }
+  }, 700);
+}
+
+function initScrollSnap() {
+  if (prefersReducedMotion()) return;
+
+  let scrollTimer;
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (isSnapInProgress) return;
+      window.clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        if (isSnapInProgress) return;
+
+        const stages = Array.from(document.querySelectorAll(".question-stage--scroll"));
+        if (!stages.length) return;
+
+        const vh = window.innerHeight;
+        let target = null;
+        let minDistance = Infinity;
+
+        stages.forEach((stage) => {
+          const top = stage.getBoundingClientRect().top;
+          const distance = Math.abs(top);
+          if (distance < minDistance) {
+            minDistance = distance;
+            target = stage;
+          }
+        });
+
+        if (!target) return;
+        const targetTop = target.getBoundingClientRect().top;
+
+        // Already aligned — leave it alone
+        if (Math.abs(targetTop) < 8) return;
+
+        // Only snap when the closest stage is within the upper/lower 45% of the viewport.
+        // Past that, the user is reading content within a question — don't yank them.
+        if (Math.abs(targetTop) < vh * 0.45) {
+          snapToStage(target);
+        }
+      }, 140);
+    },
+    { passive: true },
+  );
 }
 
 function scrollToQuestionSection(sectionId) {
@@ -2506,6 +2588,17 @@ function attachScrollableInteractions() {
     if (button.dataset.scrollSection) {
       scrollToQuestionSection(button.dataset.scrollSection);
     }
+    if (button.dataset.scrollNext) {
+      const currentId = button.dataset.scrollNext;
+      const fields = allFields();
+      const currentIndex = fields.findIndex((f) => f.id === currentId);
+      const nextField = fields[currentIndex + 1];
+      if (nextField) {
+        snapToStage(document.getElementById(nextField.id), { focus: true });
+      } else {
+        snapToStage(document.querySelector(".question-stage--closing"));
+      }
+    }
     if (button.dataset.chipField) {
       toggleChip(button);
     }
@@ -2545,3 +2638,4 @@ renderScrollableApp();
 attachScrollableInteractions();
 observeScrollableQuestions();
 initQuestionAnimations();
+initScrollSnap();
