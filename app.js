@@ -1949,6 +1949,7 @@ function renderScrollableApp() {
         <div class="topbar-actions">
           <button class="text-action" type="button" data-typeform-action="copy">Copy</button>
           <button class="text-action" type="button" data-typeform-action="download">Export</button>
+          <button class="text-action" type="button" data-typeform-action="clear">Clear</button>
         </div>
       </header>
 
@@ -2274,16 +2275,19 @@ function initQuestionAnimations() {
         }
       });
     },
-    { threshold: 0.05, rootMargin: "0px 0px -5% 0px" },
+    { threshold: 0 },
   );
 
-  stages.forEach((el) => {
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.95) {
-      el.classList.add("is-entering");
-    } else {
-      observer.observe(el);
-    }
+  // Defer one frame so the browser has finished laying out the fresh DOM.
+  requestAnimationFrame(() => {
+    stages.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) {
+        el.classList.add("is-entering");
+      } else {
+        observer.observe(el);
+      }
+    });
   });
 }
 
