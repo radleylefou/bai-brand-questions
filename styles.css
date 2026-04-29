@@ -318,6 +318,19 @@ button:disabled {
   scroll-snap-stop: normal;
 }
 
+[data-question-stage] .question-panel {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  transition:
+    opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-question-stage].is-entering .question-panel {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
 .question-stage--closing {
   min-height: 70dvh;
 }

@@ -2240,6 +2240,36 @@ function observeScrollableQuestions() {
   updateFixedContext(questions[0].id);
 }
 
+function initQuestionAnimations() {
+  const stages = document.querySelectorAll("[data-question-stage]");
+
+  if (prefersReducedMotion()) {
+    stages.forEach((el) => el.classList.add("is-entering"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-entering");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.05, rootMargin: "0px 0px -5% 0px" },
+  );
+
+  stages.forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.95) {
+      el.classList.add("is-entering");
+    } else {
+      observer.observe(el);
+    }
+  });
+}
+
 function scrollToQuestionSection(sectionId) {
   const target = document.querySelector(`[data-question-stage][data-section-id="${CSS.escape(sectionId)}"]`);
   target?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2494,6 +2524,7 @@ function attachScrollableInteractions() {
       window.localStorage.removeItem(STORAGE_KEY);
       renderScrollableApp();
       observeScrollableQuestions();
+      initQuestionAnimations();
       showToast("Draft cleared.");
     }
   });
@@ -2513,3 +2544,4 @@ function attachScrollableInteractions() {
 renderScrollableApp();
 attachScrollableInteractions();
 observeScrollableQuestions();
+initQuestionAnimations();
