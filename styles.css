@@ -497,7 +497,7 @@ button:disabled {
 
 .answer-input {
   min-height: 164px;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 400;
 }
 
@@ -505,7 +505,7 @@ button:disabled {
   min-height: 164px;
   padding: 0 0 52px;
   resize: vertical;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 400;
   line-height: 1.22;
 }
@@ -676,9 +676,9 @@ button:disabled {
 .answer-textarea--note {
   min-height: 90px;
   margin-top: 16px;
-  padding-bottom: 14px;
-  font-size: 18px;
-  line-height: 1.35;
+  padding-bottom: 52px;
+  font-size: 32px;
+  line-height: 1.22;
 }
 
 .scale-control {
@@ -1095,12 +1095,12 @@ button:disabled {
 
   .answer-input {
     min-height: 62px;
-    font-size: 22px;
+    font-size: 18px;
   }
 
   .answer-textarea {
     min-height: 150px;
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .answer-options {

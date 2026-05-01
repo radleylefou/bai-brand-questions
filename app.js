@@ -1019,7 +1019,7 @@ function completedCount(fields = allFields()) {
 }
 
 function requiredFields() {
-  return allFields().filter((field) => field.required);
+  return [];
 }
 
 function completedRequiredCount() {
@@ -1119,7 +1119,6 @@ function fieldMarkup(field) {
     <fieldset class="field ${isRequired} ${hasError}" data-field-shell="${field.id}">
       <div class="field-label-row">
         <${labelTag}${labelFor}>${escapeHtml(field.label)}</${labelTag}>
-        ${field.required ? '<span class="field-badge">Essential</span>' : ""}
       </div>
       <p class="helper">${escapeHtml(field.helper || "")}</p>
       ${fieldControl(field)}
@@ -1181,8 +1180,6 @@ function renderSections() {
 function renderApp() {
   const total = allFields().length;
   const done = completedCount();
-  const requiredDone = completedRequiredCount();
-  const requiredTotal = requiredFields().length;
   const percent = total ? Math.round((done / total) * 100) : 0;
   const unanswered = total - done;
 
@@ -1197,7 +1194,7 @@ function renderApp() {
         <div class="progress-panel">
           <div class="progress-row">
             <span class="progress-value" data-progress-value>${percent}%</span>
-            <span class="progress-label"><span data-required-value>${requiredDone}/${requiredTotal}</span> essentials</span>
+            <span class="progress-label">${done}/${total} answered</span>
           </div>
           <div class="progress-track" aria-hidden="true">
             <div class="progress-fill" data-progress-fill style="width:${percent}%"></div>
@@ -1207,7 +1204,7 @@ function renderApp() {
           ${renderNavigation()}
         </nav>
         <div class="sidebar-actions">
-          <button class="btn btn--primary btn--full" type="button" data-action="review">${iconMarkup("check")}Review essentials</button>
+          <button class="btn btn--primary btn--full" type="button" data-action="review">${iconMarkup("check")}Review progress</button>
           <button class="btn btn--full" type="button" data-action="copy">${iconMarkup("copy")}Copy Markdown</button>
           <button class="btn btn--full" type="button" data-action="download">${iconMarkup("file")}Download Markdown</button>
           <button class="btn btn--danger btn--full" type="button" data-action="clear">${iconMarkup("clear")}Clear draft</button>
@@ -1270,17 +1267,13 @@ function updateProgress() {
   const total = allFields().length;
   const done = completedCount();
   const percent = total ? Math.round((done / total) * 100) : 0;
-  const requiredDone = completedRequiredCount();
-  const requiredTotal = requiredFields().length;
 
   const progressValue = document.querySelector("[data-progress-value]");
-  const requiredValue = document.querySelector("[data-required-value]");
   const progressFill = document.querySelector("[data-progress-fill]");
   const unanswered = document.querySelector("[data-unanswered]");
   const navList = document.querySelector("[data-nav-list]");
 
   if (progressValue) progressValue.textContent = `${percent}%`;
-  if (requiredValue) requiredValue.textContent = `${requiredDone}/${requiredTotal}`;
   if (progressFill) progressFill.style.width = `${percent}%`;
   if (unanswered) unanswered.textContent = String(total - done);
   if (navList) navList.innerHTML = renderNavigation();
@@ -1367,11 +1360,11 @@ function validateRequired() {
   if (firstErrorId) {
     const target = document.querySelector(`[data-field-shell="${firstErrorId}"]`);
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
-    showToast(`${Object.keys(errors).length} essential answers still need attention.`);
+    showToast(`${Object.keys(errors).length} answers still need attention.`);
     return false;
   }
 
-  showToast("Essentials are complete. The workshop packet is ready to export.");
+  showToast("The workshop packet is ready to export.");
   return true;
 }
 
@@ -1590,7 +1583,6 @@ function outlineMarkup(progress, activeSectionId = currentField()?.sectionId) {
     <div class="floating-outline">
       <div class="outline-head">
         <span>${progress}% complete</span>
-        <button type="button" data-typeform-action="review">Check essentials</button>
       </div>
       <div class="outline-list" data-outline-active-section="${escapeHtml(activeSectionId || "")}">
         ${renderTypeformNav(activeSectionId)}
@@ -1852,10 +1844,6 @@ function renderTypeformQuestion() {
         </aside>
 
         <article class="question-panel" data-question-panel>
-          <div class="question-label-row">
-            <span>${field.required ? "Essential" : "Optional"}</span>
-            <span>${answered ? "Answered" : "Open"}</span>
-          </div>
           ${renderTypeformHeadline(field)}
           <p class="question-helper">${escapeHtml(field.helper || "")}</p>
           <div class="answer-area ${isInlinePrompt ? "answer-area--inline" : ""} ${errors[field.id] ? "has-error" : ""}" data-field-shell="${field.id}">
@@ -1864,7 +1852,7 @@ function renderTypeformQuestion() {
           </div>
           <div class="question-actions">
             <button class="primary-action" type="button" data-typeform-next>
-              ${typeformIndex === total - 1 ? "Review answers" : answered ? "Next" : "Skip for now"}
+              ${typeformIndex === total - 1 ? "Review answers" : "Next"}
             </button>
             <button class="secondary-action" type="button" data-typeform-prev ${typeformIndex === 0 ? "disabled" : ""}>Back</button>
           </div>
@@ -1882,22 +1870,18 @@ function fieldMetaLabel(field) {
   if (field.type === "chips") return field.max ? `Choose ${field.max}` : "Choose";
   if (field.type === "choice") return "Select one";
   if (field.type === "scale") return "Scale";
-  return field.required ? "Essential" : "Prompt";
+  return "Prompt";
 }
 
 function renderScrollableQuestion(field, index, total) {
   const answered = hasAnswer(field);
   const isInlinePrompt = isInlinePromptField(field);
   const isLast = index === total - 1;
-  const buttonLabel = isLast ? "Review" : answered ? "Next" : "Skip";
+  const buttonLabel = isLast ? "Finish" : "Next";
 
   return `
     <section class="question-stage question-stage--scroll" id="${field.id}" data-question-stage data-section-id="${escapeHtml(field.sectionId)}">
       <article class="question-panel" data-question-panel>
-        <div class="question-label-row">
-          <span>${escapeHtml(fieldMetaLabel(field))}</span>
-          <span data-field-state="${field.id}">${answered ? "Answered" : "Open"}</span>
-        </div>
         ${renderTypeformHeadline(field)}
         <p class="question-helper">${escapeHtml(field.helper || "")}</p>
         <div class="answer-area ${isInlinePrompt ? "answer-area--inline" : ""} ${errors[field.id] ? "has-error" : ""}" data-field-shell="${field.id}">
@@ -1963,10 +1947,6 @@ function renderScrollableApp() {
         ${fields.map((field, index) => renderScrollableQuestion(field, index, fields.length)).join("")}
         <section class="question-stage question-stage--scroll question-stage--closing">
           <article class="question-panel">
-            <div class="question-label-row">
-              <span>Export</span>
-              <span>${completedCount()}/${fields.length}</span>
-            </div>
             <h1>Ready for the workshop packet.</h1>
             <p class="question-helper">Copy or export the responses when the client has finished the questionnaire.</p>
             <div class="question-actions">
@@ -2168,7 +2148,7 @@ function syncCurrentCta(id) {
   if (!field || field.id !== id) return;
   const nextButton = document.querySelector("[data-typeform-next]");
   if (!nextButton) return;
-  nextButton.textContent = typeformIndex === allFields().length - 1 ? "Review answers" : hasAnswer(field) ? "Next" : "Skip for now";
+  nextButton.textContent = typeformIndex === allFields().length - 1 ? "Review answers" : "Next";
 }
 
 function refreshTypeformLiveUi(id) {
@@ -2198,7 +2178,7 @@ function refreshTypeformLiveUi(id) {
     const isLast = fieldIndex === fields.length - 1;
     const updatedField = fields[fieldIndex];
     document.querySelectorAll(`[data-next-button="${CSS.escape(id)}"]`).forEach((btn) => {
-      btn.textContent = isLast ? "Review" : hasAnswer(updatedField) ? "Next" : "Skip";
+      btn.textContent = isLast ? "Finish" : "Next";
     });
   }
 }
@@ -2398,7 +2378,7 @@ function validateTypeformRequired() {
   errors = {};
   requiredFields().forEach((field) => {
     if (!hasAnswer(field)) {
-      errors[field.id] = "This essential question still needs an answer.";
+      errors[field.id] = "This question still needs an answer.";
     }
   });
 
@@ -2409,12 +2389,12 @@ function validateTypeformRequired() {
       typeformIndex = targetIndex;
     }
     renderTypeformApp();
-    showToast(`${Object.keys(errors).length} essential answers still need attention.`);
+    showToast(`${Object.keys(errors).length} answers still need attention.`);
     return false;
   }
 
   renderTypeformApp();
-  showToast("Essentials are complete. Ready to export.");
+  showToast("Ready to export.");
   return true;
 }
 
@@ -2422,7 +2402,7 @@ function validateScrollableRequired() {
   errors = {};
   requiredFields().forEach((field) => {
     if (!hasAnswer(field)) {
-      errors[field.id] = "This essential question still needs an answer.";
+      errors[field.id] = "This question still needs an answer.";
     }
   });
 
@@ -2441,11 +2421,11 @@ function validateScrollableRequired() {
   const firstErrorId = Object.keys(errors)[0];
   if (firstErrorId) {
     document.getElementById(firstErrorId)?.scrollIntoView({ behavior: "smooth", block: "center" });
-    showToast(`${Object.keys(errors).length} essential answer still needs attention.`);
+    showToast(`${Object.keys(errors).length} answer still needs attention.`);
     return false;
   }
 
-  showToast("Essentials are complete. Ready to export.");
+  showToast("Ready to export.");
   return true;
 }
 
