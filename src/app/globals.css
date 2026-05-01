@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────────────── */
+
+:root {
+  /* Dark admin theme — matches CLAUDE.md spec */
+  --bg:          #0d0e10;
+  --surface:     #141518;
+  --surface-2:   #1c1e23;
+  --ink:         #f2f2f5;
+  --soft-ink:    #b4b6c0;
+  --muted:       #6b6e77;
+  --line:        rgba(255, 255, 255, 0.08);
+  --line-mid:    rgba(255, 255, 255, 0.12);
+  --accent:      #d4f76e;
+  --accent-fg:   #0d0e10;
+  --primary:     #d4f76e;
+  --primary-fg:  #0d0e10;
+  --danger:      #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --success:     #4ade80;
+}
+
+/* Light client surface — applied via .surface-light on /q/* layouts */
+.surface-light {
+  --bg:          #ffffff;
+  --surface:     #f9f9f7;
+  --surface-2:   #f2f1ee;
+  --ink:         #111111;
+  --soft-ink:    #444444;
+  --muted:       #777777;
+  --line:        #dedede;
+  --line-mid:    #bdbdbd;
+  --primary:     #5a69eb;
+  --primary-fg:  #ffffff;
+  --accent:      #5a69eb;
+  --accent-fg:   #ffffff;
+  --danger:      #b23327;
+  --danger-soft: #fff1ef;
+}
+
+/* ─── Tailwind v4 Theme ──────────────────────────────────────────────── */
+
+@theme inline {
+  /* CSS vars → Tailwind color utilities (bg-bg, text-ink, border-border, …) */
+  --color-bg:        var(--bg);
+  --color-surface:   var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink:       var(--ink);
+  --color-soft-ink:  var(--soft-ink);
+  --color-muted:     var(--muted);
+  --color-accent:    var(--accent);
+  --color-primary:   var(--primary);
+  --color-danger:    var(--danger);
+  --color-success:   var(--success);
+  --color-border:    var(--line);
+
+  /* Font stacks — CSS variables injected by next/font in layout.tsx */
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
